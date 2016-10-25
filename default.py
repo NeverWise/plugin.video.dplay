@@ -13,7 +13,7 @@ class Dplay(object):
 
     # Shows.
     if len(self._params) == 0:
-      self._getShowsPage(0, 50)
+      self._getShowsPage(0, xbmcplugin.getSetting(self._handle, 'items_per_page'))
 
     # Seasons.
     elif self._params['action'] == 's':

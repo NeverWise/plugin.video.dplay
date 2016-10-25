@@ -63,3 +63,7 @@ msgstr ""
 msgctxt "#30011"
 msgid "{episode} (Episode {number})"
 msgstr ""
+
+msgctxt "#30012"
+msgid "Maxiumum shows per request"
+msgstr "Maxiumum shows per request"
