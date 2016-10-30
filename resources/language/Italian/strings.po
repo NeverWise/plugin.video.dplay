@@ -63,3 +63,7 @@ msgstr "{season} ({numberof} episodi su {numbertot} disponibili)"
 msgctxt "#30011"
 msgid "{episode} (Episode {number})"
 msgstr "{episode} (Episodio {number})"
+
+msgctxt "#30012"
+msgid "Maximum shows per request"
+msgstr "Numero massimo di programmi per richiesta"

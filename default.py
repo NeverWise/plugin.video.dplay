@@ -13,19 +13,7 @@ class Dplay(object):
 
     # Shows.
     if len(self._params) == 0:
-      shows = Util.getResponseJson('http://it.dplay.com/api/v2/ajax/modules?items=1000&page_id=32&module_id=26')
-      if shows.isSucceeded:
-        for show in shows.body['data']:
-          episodes = 0
-          for ti in show['taxonomy_items']:
-            if ti['type'] == 'show':
-              episodes = ti['metadata']['episodes']
-              break # Stops "for ti in show['taxonomy_items']:".
-          title = Util.getTranslation(30009).format(show = show['title'], number = episodes)
-          img = show['image_data']
-          li = Util.createListItem(title, thumbnailImage = self._getImage(img), streamtype = 'video', infolabels = { 'title' : title, 'plot' : show['description'] })
-          xbmcplugin.addDirectoryItem(self._handle, Util.formatUrl({ 'action' : 's', 'showid' : show['id'] }), li, True)
-        xbmcplugin.endOfDirectory(self._handle)
+      self._getShowsPage(0, xbmcplugin.getSetting(self._handle, 'items_per_page'))
 
     # Seasons.
     elif self._params['action'] == 's':
@@ -71,6 +59,26 @@ class Dplay(object):
           items.append(( abs(qlySetting - int(qly)), url ))
         items = sorted(items, key = lambda item: item[0])
         Util.playStream(self._handle, '', path = items[0][1])
+
+
+  def _getShowsPage(self, Page, Items):
+    shows = Util.getResponseJson('http://it.dplay.com/api/v2/ajax/modules?items={0}&page_id=32&module_id=26&page={1}'.format(Items, Page))
+    if shows.isSucceeded:
+      for show in shows.body['data']:
+        episodes = 0
+        for ti in show['taxonomy_items']:
+          if ti['type'] == 'show':
+            episodes = ti['metadata']['episodes']
+            break # Stops "for ti in show['taxonomy_items']:".
+        title = Util.getTranslation(30009).format(show = show['title'], number = episodes)
+        img = show['image_data']
+        li = Util.createListItem(title, thumbnailImage = self._getImage(img), streamtype = 'video', infolabels = { 'title' : title, 'plot' : show['description'] })
+        xbmcplugin.addDirectoryItem(self._handle, Util.formatUrl({ 'action' : 's', 'showid' : show['id'] }), li, True)
+      pages = shows.body['total_pages']
+      if Page < pages - 1:
+        self._getShowsPage(Page + 1, Items)
+      else:
+        xbmcplugin.endOfDirectory(self._handle)
 
 
   def _getEpisodes(self, showId, seasonId):
