@@ -1,2 +1,5 @@
+[B]Version 1.0.1[/B]
+- Fixed "Internet connection error" (gex77).
+
 [B]Version 1.0.0[/B]
 - Initial version.
