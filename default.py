@@ -31,13 +31,15 @@ class Dplay(object):
         if response.isSucceeded:
           if len(response.body['Sections']) > 0:
             fanart = response.body['Images'][0]['Src']
+            time_zone = nw.gettzlocal()
+            haveFFmpeg = os.path.isfile(nw.addon.getSetting('ffmpeg_path')) and os.path.isdir(nw.addon.getSetting('download_path'))
             for video in response.body['Sections'][0]['Items']:
               season_number = video['SeasonNumber']
               for video in video['Episodes']:
-                vd = self._getVideoInfo(video)
+                vd = self._getVideoInfo(video, time_zone)
                 cm = None
                 params = { 'at' : self._access_token, 'action' : 'd', 'value' : video['Id'] }
-                if os.path.isfile(nw.addon.getSetting('ffmpeg_path')) and os.path.isdir(nw.addon.getSetting('download_path')):
+                if haveFFmpeg:
                   cm = nw.getDownloadContextMenu('RunPlugin({0})'.format(nw.formatUrl(params)), vd['title'])
                 params['action'] = 'v'
                 self._addItem(vd['title'], params, vd['img'], fanart, vd['descr'], self._getDuration(video['Duration']), True, cm)
@@ -140,18 +142,20 @@ class Dplay(object):
     if headers == None:
       headers = default_headers
     if add_bearer:
-      headers['Authorization'] = 'Bearer {0}'.format(self._access_token[0:-49])
+      headers['Authorization'] = 'Bearer {0}'.format(self._access_token[0 : self._access_token.index('__!__') - len(self._access_token)])
 
     return headers
 
 
-  def _getVideoInfo(self, video):
+  def _getVideoInfo(self, video, time_zone = None):
     title = u'{0} ({1} {2} - {3} {4})'.format(video['Name'], nw.getTranslation(30011), video['SeasonNumber'], nw.getTranslation(30012), video['EpisodeNumber'])
     descr = video['Description']
     if video['PublishEndDate'] != None:
+      if time_zone == None:
+        time_zone = nw.gettzlocal()
       date = nw.strptime(video['PublishEndDate'], '%Y-%m-%dT%H:%M:%SZ')
       date = date.replace(tzinfo = nw.gettz('UTC'))
-      date = date.astimezone(nw.gettzlocal())
+      date = date.astimezone(time_zone)
       descr = u'{0}\n\n{1} {2}'.format(descr, nw.getTranslation(30013), date.strftime(nw.datetime_format))
     return { 'img' : video['Images'][0]['Src'], 'title' : title, 'descr' : descr }
 
