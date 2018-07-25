@@ -5,6 +5,7 @@ from datetime import timedelta#, datetime
 
 class Dplay(object):
 
+  USER_AGENT = "okhttp/3.3.0"
   _handle = int(sys.argv[1])
   _params = nw.urlParametersToDict(sys.argv[2])
   _access_token = None
@@ -52,7 +53,11 @@ class Dplay(object):
         if not result:
           nw.showVideoNotAvailable()
         else:
-          nw.playStream(self._handle, result['title'], result['img'], result['url'], 'video', { 'title' : result['title'], 'plot' : result['descr'] })
+          # Force XBMC to set the User-Agent HTTP header to the correct value
+          result_url = result['url'] + "|User-Agent=%s" % Dplay.USER_AGENT
+
+          nw.playStream(self._handle, result['title'], result['img'], result_url,
+                        'video', { 'title' : result['title'], 'plot' : result['descr'] })
 
       elif self._params['action'] == 'd':
         result = self._getStream(self._params['value'])
@@ -63,7 +68,7 @@ class Dplay(object):
           name = '{0}.ts'.format(name)
           os.chdir(nw.addon.getSetting('download_path'))
           #~ subprocess.call([nw.addon.getSetting('ffmpeg_path'), '-i', result['url'], '-c', 'copy', name])
-          subprocess.Popen([nw.addon.getSetting('ffmpeg_path'), '-i', result['url'], '-c', 'copy', name])
+          subprocess.Popen([nw.addon.getSetting('ffmpeg_path'), '-user-agent', Dplay.USER_AGENT, '-i', result['url'], '-c', 'copy', name])
 
 
   def _getStream(self, video_id):
@@ -77,7 +82,7 @@ class Dplay(object):
       response = self._getResponseJson('https://dplay-south-prod.disco-api.com/playback/videoPlaybackInfo/{0}'.format(video_id), True)
       if response.isSucceeded:
         url = response.body['data']['attributes']['streaming']['hls']['url']
-        stream = nw.getResponse(url)
+        stream = nw.getResponse(url, headers={"User-Agent": Dplay.USER_AGENT})
         if stream.isSucceeded:
           qlySetting = nw.addon.getSetting('vid_quality')
           if qlySetting == '0':
@@ -133,7 +138,7 @@ class Dplay(object):
 
   def _getHeaders(self, add_bearer = False):
 
-    default_headers = { 'User-Agent' : 'okhttp/3.3.0', 'Accept-Encoding' : 'gzip' }
+    default_headers = { 'User-Agent' : Dplay.USER_AGENT, 'Accept-Encoding' : 'gzip' }
     headers = None
     if self._access_token != None:
       headers = { 'AccessToken' : self._access_token }
