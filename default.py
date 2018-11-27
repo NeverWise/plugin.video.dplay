@@ -22,10 +22,8 @@ class Dplay(object):
         #~ xbmcplugin.endOfDirectory(self._handle)
         response = self._getResponseJson('http://dplayproxy.azurewebsites.net//api/Show/GetList')
         for show in response.body:
-          try:
-            self._addItem(show['Name'], { 'at' : self._access_token, 'action' : 's', 'value' : show['Id'] }, show['Images'][0]['Src'], fanart, show['Description'])
-          except:
-            self._addItem(show['Name'], { 'at' : self._access_token, 'action' : 's', 'value' : show['Id'] }, show['Images'][0]['Src'], fanart)
+          desc=show['Description'] if 'Description' in show else ''
+          self._addItem(show['Name'], { 'at' : self._access_token, 'action' : 's', 'value' : show['Id'] }, show['Images'][0]['Src'], fanart, desc)
         xbmcplugin.endOfDirectory(self._handle)
     else:
       self._access_token = self._params['at']
@@ -38,15 +36,14 @@ class Dplay(object):
             time_zone = nw.gettzlocal()
             haveFFmpeg = os.path.isfile(nw.addon.getSetting('ffmpeg_path')) and os.path.isdir(nw.addon.getSetting('download_path'))
             for video in response.body['Sections'][0]['Items']:
-              season_number = video['SeasonNumber']
-              for video in video['Episodes']:
-                vd = self._getVideoInfo(video, time_zone)
-                cm = None
-                params = { 'at' : self._access_token, 'action' : 'd', 'value' : video['Id'] }
-                if haveFFmpeg:
-                  cm = nw.getDownloadContextMenu('RunPlugin({0})'.format(nw.formatUrl(params)), vd['title'])
-                params['action'] = 'v'
-                self._addItem(vd['title'], params, vd['img'], fanart, vd['descr'], self._getDuration(video['Duration']), True, cm)
+              season_number = video['SeasonNumber'] if 'SeasonNumber' in video else '0'
+              if 'Episodes' in video:
+                for video in video['Episodes']:
+                  vd = self._getVideoInfo(video, time_zone)
+                  cm = nw.getDownloadContextMenu('RunPlugin({0})'.format(nw.formatUrl(params)), vd['title']) if haveFFmpeg else None
+                  params = { 'at' : self._access_token, 'action' : 'v', 'value' : video['Id'] } #'v' instead of 'd'
+                  #params['action'] = 'v'
+                  self._addItem(vd['title'], params, vd['img'], fanart, vd['descr'], self._getDuration(video['Duration']), True, cm)
             xbmcplugin.endOfDirectory(self._handle)
           else:
             nw.showNotification(nw.getTranslation(30014))
@@ -158,7 +155,7 @@ class Dplay(object):
   def _getVideoInfo(self, video, time_zone = None):
     title = u'{0} ({1} {2} - {3} {4})'.format(video['Name'], nw.getTranslation(30011), video['SeasonNumber'], nw.getTranslation(30012), video['EpisodeNumber'])
     descr = video['Description']
-    if video['PublishEndDate'] != None:
+    if 'PublishEndDate' in video:
       if time_zone == None:
         time_zone = nw.gettzlocal()
       date = nw.strptime(video['PublishEndDate'], '%Y-%m-%dT%H:%M:%SZ')
