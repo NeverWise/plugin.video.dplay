@@ -22,7 +22,10 @@ class Dplay(object):
         #~ xbmcplugin.endOfDirectory(self._handle)
         response = self._getResponseJson('http://dplayproxy.azurewebsites.net//api/Show/GetList')
         for show in response.body:
-          self._addItem(show['Name'], { 'at' : self._access_token, 'action' : 's', 'value' : show['Id'] }, show['Images'][0]['Src'], fanart, show['Description'])
+          try:
+            self._addItem(show['Name'], { 'at' : self._access_token, 'action' : 's', 'value' : show['Id'] }, show['Images'][0]['Src'], fanart, show['Description'])
+          except:
+            self._addItem(show['Name'], { 'at' : self._access_token, 'action' : 's', 'value' : show['Id'] }, show['Images'][0]['Src'], fanart)
         xbmcplugin.endOfDirectory(self._handle)
     else:
       self._access_token = self._params['at']
