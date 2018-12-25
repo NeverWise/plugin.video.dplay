@@ -20,7 +20,7 @@ class Dplay(object):
           #~ if menu['Url'] == None:
             #~ self._addItem(menu['Label'], { 'at' : self._access_token, 'action' : 'm', 'value' : re.sub('\s+', '', menu['Label']) }, fanart = fanart)
         #~ xbmcplugin.endOfDirectory(self._handle)
-        response = self._getResponseJson('http://dplayproxy.azurewebsites.net//api/Show/GetList')
+        response = self._getResponseJson('https://dplayproxy.azurewebsites.net//api/Show/GetList')
         for show in response.body:
           desc=show['Description'] if 'Description' in show else ''
           self._addItem(show['Name'], { 'at' : self._access_token, 'action' : 's', 'value' : show['Id'] }, show['Images'][0]['Src'], fanart, desc)
@@ -29,7 +29,7 @@ class Dplay(object):
       self._access_token = self._params['at']
 
       if self._params['action'] == 's':
-        response = self._getResponseJson('http://dplayproxy.azurewebsites.net/api/Show/GetById/?id={0}'.format(self._params['value']))
+        response = self._getResponseJson('https://dplayproxy.azurewebsites.net/api/Show/GetById/?id={0}'.format(self._params['value']))
         if response.isSucceeded:
           if len(response.body['Sections']) > 0:
             fanart = response.body['Images'][0]['Src']
@@ -73,7 +73,7 @@ class Dplay(object):
 
   def _getStream(self, video_id):
     result = {}
-    response = self._getResponseJson('http://dplayproxy.azurewebsites.net/api/Video/GetById/?id={0}'.format(video_id))
+    response = self._getResponseJson('https://dplayproxy.azurewebsites.net/api/Video/GetById/?id={0}'.format(video_id))
     if response.isSucceeded:
       vd = self._getVideoInfo(response.body)
       result['title'] = vd['title']
@@ -115,7 +115,7 @@ class Dplay(object):
 
   def _getResponseJson(self, url, add_bearer = False):
 
-    token_url = 'http://dplayproxy.azurewebsites.net/api/config/init'
+    token_url = 'https://dplayproxy.azurewebsites.net/api/config/init'
     if url == None or len(url) == 0:
       url = token_url
 

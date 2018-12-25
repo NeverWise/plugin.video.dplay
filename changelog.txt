@@ -1,3 +1,8 @@
+[B]Version 1.0.5[/B]
+- Merged pull requests of Roberto Paleari, Mark Lenders and dadeaka.
+- Switch urls from http to https.
+- Updated README.md.
+
 [B]Version 1.0.4[/B]
 - Fixed bug on playing show.
 - Minor improvements.
