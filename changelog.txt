@@ -1,3 +1,6 @@
+[B]Version 1.0.6[/B]
+- Improved episode list.
+
 [B]Version 1.0.5[/B]
 - Merged pull requests of Roberto Paleari, Mark Lenders and dadeaka.
 - Switch urls from http to https.

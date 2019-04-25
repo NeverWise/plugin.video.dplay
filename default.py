@@ -44,6 +44,7 @@ class Dplay(object):
                   params = { 'at' : self._access_token, 'action' : 'v', 'value' : video['Id'] } #'v' instead of 'd'
                   #params['action'] = 'v'
                   self._addItem(vd['title'], params, vd['img'], fanart, vd['descr'], self._getDuration(video['Duration']), True, cm)
+            xbmcplugin.setContent(self._handle, 'episodes')
             xbmcplugin.endOfDirectory(self._handle)
           else:
             nw.showNotification(nw.getTranslation(30014))
