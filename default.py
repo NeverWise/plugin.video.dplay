@@ -102,9 +102,9 @@ class Dplay(object):
             qlySetting = 1080
           else:
             qlySetting = 576
-          try:
+          try: # For python 2.x
             strms_names = re.findall(r'RESOLUTION=.+?x(.+?),.+?".+?"\s(.+)', stream.body)
-          except:
+          except: # For python 3.x
             strms_names = re.findall(r'RESOLUTION=.+?x(.+?),.+?".+?"\s(.+)', stream.body.decode('utf-8'))
           items = []
           for qly, strm_name in strms_names:
@@ -146,10 +146,10 @@ class Dplay(object):
     headers = None
     if self._access_token != None:
       headers = { 'AccessToken' : self._access_token }
-      try:
+      try: # For python 2.x
         for key, value in default_headers.iteritems():
           headers[key] = value
-      except:
+      except: # For python 3.x
         for key,value in default_headers.items():
           headers[key] = value
     if headers == None:
