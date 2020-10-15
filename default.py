@@ -1,7 +1,7 @@
 #!/usr/bin/python
 import neverwise as nw, os, re, subprocess, sys, xbmcplugin
 from datetime import timedelta, datetime
-
+import xbmc
 
 class Dplay(object):
 
@@ -48,13 +48,20 @@ class Dplay(object):
             self._access_token = self._params['at']
 
             if self._params['action'] == 's':
-                response = self._getResponseJson('https://eu2-prod.disco-api.com/content/videos?filter[show.id]={0}&page[size]=100&include=images&sort=seasonNumber,episodeNumber&filter[videoType]=EPISODE'.format(self._params['value']))
+                url = 'https://eu2-prod.disco-api.com/content/videos?filter[show.id]={0}&page[size]=100&include=images&sort=seasonNumber,episodeNumber&filter[videoType]=EPISODE'.format(self._params['value'])
+                xbmc.log("Dplay. OPEN URL: %s" % url)
+                response = self._getResponseJson(url, self._getHeaders(True))
                 if response.isSucceeded:
+
                     #if len(response.body['Sections']) > 0:
                     #    fanart = response.body['Images'][0]['Src']
-                    #    time_zone = nw.gettzlocal()
-                    #    haveFFmpeg = os.path.isfile(nw.addon.getSetting('ffmpeg_path')) and os.path.isdir(nw.addon.getSetting('download_path'))
+                    fanart = ""  # da aggiustare
+                    time_zone = nw.gettzlocal()
+                    haveFFmpeg = os.path.isfile(nw.addon.getSetting('ffmpeg_path')) and os.path.isdir(nw.addon.getSetting('download_path'))
+
+                    xbmc.log("Dplay. start reading images")
                     imgList = self.loadImagesFromJson(response.body["included"])
+                    xbmc.log("Dplay. end reading images")
                     
                     for video in response.body["data"]:
                         attr = video["attributes"]
@@ -63,10 +70,22 @@ class Dplay(object):
 
                         vd = self._getVideoInfo(attr, time_zone)
                         
+                        rel = video.get("relationships",{})
+                        images = rel.get("images",[])
+                        if images:
+                            icon_code = images["data"][0]["id"] 
+                            
+                            if icon_code in imgList:
+                                icon = imgList[icon_code]
+                            else:
+                                icon = ""
+                        else:
+                            icon = ""                        
+                        
                         cm = nw.getDownloadContextMenu('RunPlugin({0})'.format(nw.formatUrl(params)), vd['title']) if haveFFmpeg else None
                         params = { 'at' : self._access_token, 'action' : 'v', 'value' : video['id'] } #'v' instead of 'd'
                         #params['action'] = 'v'
-                        self._addItem(vd['title'], params, vd['img'], fanart, vd['descr'], self._getDuration(attr['duration']), True, cm)
+                        self._addItem(vd['title'], params, icon, icon, vd['descr'], self._getDuration(attr["videoDuration"]), True, cm)
                         xbmcplugin.setContent(self._handle, 'episodes')
                     xbmcplugin.endOfDirectory(self._handle)
                 else:
@@ -112,13 +131,15 @@ class Dplay(object):
 
     def _getStream(self, video_id):
         result = {}
-        response = self._getResponseJson('https://dplayproxy.azurewebsites.net/api/Video/GetById/?id={0}'.format(video_id))
+        url = 'http://eu2-prod.disco-api.com/content/videos/{0}'.format(video_id)
+        xbmc.log("Dplay OPEN URL: %s " % url)
+        response = self._getResponseJson(url, self._getHeaders(True))
         if response.isSucceeded:
-          vd = self._getVideoInfo(response.body)
+          vd = self._getVideoInfo(response.body["data"]["attributes"])
           result['title'] = vd['title']
           result['descr'] = vd['descr']
-          result['img'] = vd['img']
-          response = self._getResponseJson('https://dplay-south-prod.disco-api.com/playback/videoPlaybackInfo/{0}'.format(video_id), True)
+          result['img'] = "" # vd['img']
+          response = self._getResponseJson('http://eu2-prod.disco-api.com/playback/videoPlaybackInfo/{0}'.format(video_id), True)
           if response.isSucceeded:
             url = response.body['data']['attributes']['streaming']['hls']['url']
             stream = nw.getResponse(url, headers={"User-Agent": Dplay.USER_AGENT})
