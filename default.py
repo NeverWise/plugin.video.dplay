@@ -28,8 +28,26 @@ class Dplay(object):
                     for show in response.body['data']:
                         attr = show["attributes"]
                         desc = attr['description'] if 'description' in attr else ''
-
+                        title = attr['name']
+                        
                         rel = show.get("relationships",{})
+
+                        plus = False 
+
+                        try:
+                            packages = rel["contentPackages"]["data"]
+                            for p in packages:
+                                if p.get("id","") == "Premium" :
+                                    pp = "Dplay plus"
+                                    plus = True
+                                    title = title + " (PLUS)"
+                                else:
+                                    pp = p
+                                
+                        
+                        except: 
+                            pass
+                        
                         images = rel.get("images",[])
                         if images:
                             icon_code = images["data"][0]["id"] 
@@ -41,7 +59,7 @@ class Dplay(object):
                         else:
                             icon = ""                        
                         
-                        self._addItem(attr['name'], { 'at' : self._access_token, 'action' : 's', 'value' : show['id'] }, icon , fanart, desc)
+                        self._addItem(title, { 'at' : self._access_token, 'action' : 's', 'value' : show['id'] }, icon , fanart, desc)
         
                 xbmcplugin.endOfDirectory(self._handle)
         else:
@@ -139,6 +157,8 @@ class Dplay(object):
           result['title'] = vd['title']
           result['descr'] = vd['descr']
           result['img'] = "" # vd['img']
+          if vd['plus'] :
+              return
           response = self._getResponseJson('http://eu2-prod.disco-api.com/playback/videoPlaybackInfo/{0}'.format(video_id), True)
           if response.isSucceeded:
             url = response.body['data']['attributes']['streaming']['hls']['url']
@@ -220,6 +240,7 @@ class Dplay(object):
     def _getVideoInfo(self, video, time_zone = None):
         title = u'{0} ({1} {2} - {3} {4})'.format(video['name'], nw.getTranslation(30011), video['seasonNumber'], nw.getTranslation(30012), video['episodeNumber'])
         descr = video['description']
+        
         if 'publishEnd' in video:
             if time_zone == None:
                 time_zone = nw.gettzlocal()
@@ -228,9 +249,23 @@ class Dplay(object):
                 date = date.astimezone(time_zone)
                 descr = u'{0}\n\n{1} {2}'.format(descr, nw.getTranslation(30013), date.strftime(nw.datetime_format))
         
+        plus = False
+                            
+        if 'packages' in video:
+            descr = descr + "\n" + nw.getTranslation(30015) + ":" # cambiare stringa
+            for p in video['packages']:
+                if p == "Premium" :
+                    pp = "Dplay plus"
+                    plus = True
+                    title = title + " (PLUS)"
+                else:
+                    pp = p
+                
+                descr = descr + " " + pp
+        
         # aggiungere immagini
         
-        return { 'img' : '' , 'title' : title, 'descr' : descr }
+        return { 'img' : '' , 'title' : title, 'descr' : descr , 'plus' : plus}
 
 
     def _addItem(self, title, keyValueUrlList, logo = 'DefaultFolder.png', fanart = None, plot = None, duration = '', isPlayable = False, contextMenu = None):

@@ -75,3 +75,7 @@ msgstr ""
 msgctxt "#30014"
 msgid "No videos available for this show"
 msgstr ""
+
+msgctxt "#30015"
+msgid "Packages"
+msgstr ""
