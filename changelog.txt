@@ -1,3 +1,11 @@
+[B]Version 1.0.8.3[/B]
+- Fixed problem with changed APIs.
+- Updated Logos
+- Add PLUS label for paid videos.
+
+[B]Version 1.0.7[/B]
+- Python 3 and Python 2 compatibility.
+
 [B]Version 1.0.6[/B]
 - Improved episode list.
 

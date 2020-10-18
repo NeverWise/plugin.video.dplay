@@ -75,3 +75,7 @@ msgstr "Disponibile fino"
 msgctxt "#30014"
 msgid "No videos available for this show"
 msgstr "Nessun video disponibile per questo spettacolo"
+
+msgctxt "#30015"
+msgid "Packages"
+msgstr "Pacchetti"
